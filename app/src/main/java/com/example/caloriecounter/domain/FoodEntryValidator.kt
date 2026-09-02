@@ -2,7 +2,7 @@ package com.example.caloriecounter.domain
 
 import com.example.caloriecounter.data.MealType
 
-data class FoodEntryInput(val name: String, val serving: String, val calories: String, val protein: String, val carbs: String, val fat: String, val fiber: String, val mealType: MealType)
+data class FoodEntryInput(val name: String, val serving: String, val calories: String, val protein: String, val carbs: String, val fat: String, val fiber: String, val mealType: MealType, val multiplier: String = "1")
 
 object FoodEntryValidator {
     /** Calories are intentionally whole numbers; macro and fiber inputs permit decimal grams. */
@@ -10,6 +10,7 @@ object FoodEntryValidator {
         input.name.trim().isEmpty() -> "Enter a food name."
         input.serving.trim().isEmpty() -> "Enter a serving or quantity."
         input.calories.toIntOrNull()?.let { it >= 0 } != true -> "Calories must be a whole number of zero or more."
+        input.multiplier.toDoubleOrNull()?.let { it > 0 } != true -> "Servings must be greater than zero."
         listOf(input.protein, input.carbs, input.fat, input.fiber).any { it.toDoubleOrNull()?.let { number -> number >= 0 } != true } -> "Macros must be zero or greater."
         else -> null
     }

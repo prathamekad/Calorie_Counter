@@ -22,7 +22,17 @@ object DatabaseProvider {
         }
     }
 
+    /** Adds catalog serving, fiber, and favorite state without changing existing logged meals. */
+    private val migration2To3 = object : Migration(2, 3) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS foods_new (name TEXT NOT NULL PRIMARY KEY, servingDescription TEXT NOT NULL, calories INTEGER NOT NULL, protein REAL NOT NULL, carbs REAL NOT NULL, fat REAL NOT NULL, fiber REAL NOT NULL, isFavorite INTEGER NOT NULL)")
+            database.execSQL("INSERT INTO foods_new (name, servingDescription, calories, protein, carbs, fat, fiber, isFavorite) SELECT name, unit, calories, protein, carbs, fat, 0, 0 FROM foods")
+            database.execSQL("DROP TABLE foods")
+            database.execSQL("ALTER TABLE foods_new RENAME TO foods")
+        }
+    }
+
     fun getDatabase(context: Context): AppDatabase = instance ?: synchronized(this) {
-        Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "calorie_counter.db").addMigrations(migration1To2).build().also { instance = it }
+        Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "calorie_counter.db").addMigrations(migration1To2, migration2To3).build().also { instance = it }
     }
 }
